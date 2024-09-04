@@ -12,6 +12,7 @@ declare interface Driver {
 }
 
 declare interface MarkerData {
+    car_image_url: string | undefined;
     longitude: number;
     latitude: number;
     id: number;
