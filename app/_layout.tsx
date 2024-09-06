@@ -1,53 +1,31 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, Slot } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import {ClerkProvider, ClerkLoaded} from '@clerk/clerk-expo';
-import * as SecureStore from 'expo-secure-store';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { tokenCache } from '@/lib/auth';
+import { LogBox } from 'react-native';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const publicKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
-const tokenCache = {
-  async getToken(key: string) {
-    try {
-      const item = await SecureStore.getItemAsync(key);
-      if (item) {
-        console.log(`key: ${key} was used \n`);
-      } else {
-        console.log(`No value stored under key: ${key}`);
-      }
-      return item;
-    } catch (error) {
-      console.error(`Secure store error: ${error}`);
-      return null;
-    }
-  },
-
-  async saveToken(key: string, value: string) {
-    try {
-      await SecureStore.setItemAsync(key, value);
-      console.log(`key: ${key} was saved`);
-    } catch (error) {
-      console.error(`Secure store error: ${error}`);
-      return null;
-    }
-  },
-};
-
 if(!publicKey) throw new Error('Missing Clerk Publishable Key')
+
+LogBox.ignoreLogs(["Clerk:"])
 
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
+    "Jakarta-ExtraBold": require("../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
+    "Jakarta-ExtraLight": require("../assets/fonts/PlusJakartaSans-ExtraLight.ttf"),
+    "Jakarta-Light": require("../assets/fonts/PlusJakartaSans-Light.ttf"),
+    "Jakarta-Medium": require("../assets/fonts/PlusJakartaSans-Medium.ttf"),
+    Jakarta: require("../assets/fonts/PlusJakartaSans-Regular.ttf"),
+    "Jakarta-SemiBold": require("../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
   });
 
   useEffect(() => {
@@ -61,13 +39,17 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={publicKey}>
+    <ClerkProvider 
+      tokenCache={tokenCache} 
+      publishableKey={publicKey}
+      >
       <ClerkLoaded>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Slot />
-          <Stack>
-          </Stack>
-        </ThemeProvider>
+        <Stack>
+          <Stack.Screen name='index' options={{ headerShown: false }} />
+          <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+          <Stack.Screen name='(root)' options={{ headerShown: false }} />
+          <Stack.Screen name='+not-found'/>
+        </Stack>
       </ClerkLoaded>
     </ClerkProvider>
   );
